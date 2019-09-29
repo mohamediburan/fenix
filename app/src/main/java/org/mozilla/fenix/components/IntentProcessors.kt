@@ -36,9 +36,11 @@ class IntentProcessors(
         TabIntentProcessor(sessionManager, sessionUseCases.loadUrl, searchUseCases.newTabSearch, isPrivate = true)
     }
 
-    val externalAppIntentProcessors by lazy {
-        listOf(
-            CustomTabIntentProcessor(sessionManager, sessionUseCases.loadUrl, context.resources)
-        )
+    val externalAppIntentProcessor by lazy {
+        CustomTabIntentProcessor(sessionManager, sessionUseCases.loadUrl, context.resources, isPrivate = false)
+    }
+
+    val privateExternalAppIntentProcessor by lazy {
+        CustomTabIntentProcessor(sessionManager, sessionUseCases.loadUrl, context.resources, isPrivate = true)
     }
 }

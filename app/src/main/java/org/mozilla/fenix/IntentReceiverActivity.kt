@@ -43,8 +43,13 @@ class IntentReceiverActivity : Activity() {
             components.intentProcessors.intentProcessor
         }
 
-        val intentProcessors =
-            components.intentProcessors.externalAppIntentProcessors + tabIntentProcessor
+        val customTabIntentProcessor = if (settings().alwaysOpenInPrivateMode) {
+            components.intentProcessors.privateExternalAppIntentProcessor
+        } else {
+            components.intentProcessors.externalAppIntentProcessor
+        }
+
+        val intentProcessors = listOf(customTabIntentProcessor) + tabIntentProcessor
 
         intentProcessors.any { it.process(intent) }
         setIntentActivity(intent, tabIntentProcessor)
@@ -59,7 +64,7 @@ class IntentReceiverActivity : Activity() {
      */
     private fun setIntentActivity(intent: Intent, tabIntentProcessor: TabIntentProcessor) {
         val openToBrowser = when {
-            components.intentProcessors.externalAppIntentProcessors.any { it.matches(intent) } -> {
+            listOf(components.intentProcessors.externalAppIntentProcessor).any { it.matches(intent) } -> {
                 // TODO this needs to change: https://github.com/mozilla-mobile/fenix/issues/5225
                 val activityClass = if (intent.hasExtra(EXTRA_AUTH_CUSTOM_TAB)) {
                     AuthCustomTabActivity::class
