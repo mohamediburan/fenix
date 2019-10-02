@@ -83,7 +83,7 @@ def add_nightly_version(config, tasks):
 
     for task in tasks:
         if task.pop("include-nightly-version", False):
-            task["run"]["gradlew"].append('-PversionName="{}"'.format(formated_date_time))
+            task["run"]["gradlew"].append('-PversionName={}'.format(formated_date_time))
         yield task
 
 
@@ -91,11 +91,9 @@ def add_nightly_version(config, tasks):
 def add_release_version(config, tasks):
     for task in tasks:
         if task.pop("include-release-version", False):
-            # TODO Move GIT_TAG to a parameter
-            git_tag = os.environ['GIT_TAG']
-            version = git_tag[1:]  # remove prefixed "v"
-
-            task["run"]["gradlew"].append('-PversionName="{}"'.format(version))
+            task["run"]["gradlew"].append(
+                '-PversionName="{}"'.format(config.params["release_version"])
+            )
         yield task
 
 
