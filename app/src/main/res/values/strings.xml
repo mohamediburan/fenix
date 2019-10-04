@@ -852,6 +852,10 @@
     <string name="enhanced_tracking_protection_blocked">Blocked</string>
     <!-- Header for categories that are being not being blocked by current Enhanced Tracking Protection settings -->
     <string name="enhanced_tracking_protection_allowed">Allowed</string>
+    <!--- Text displayed for strict info button -->
+    <string name="enhanced_tracking_protection_strict_info">What\'s blocked by strict tracking protection</string>
+    <!--- Text displayed for standard info button -->
+    <string name="enhanced_tracking_protection_standard_info">What\'s blocked by standard tracking protection</string>
     <!-- Category of trackers (social media trackers) that can be blocked by Enhanced Tracking Protection -->
     <string name="etp_social_media_trackers_title">Social Media Trackers</string>
     <!-- Description of social media trackers that can be blocked by Enhanced Tracking Protection -->

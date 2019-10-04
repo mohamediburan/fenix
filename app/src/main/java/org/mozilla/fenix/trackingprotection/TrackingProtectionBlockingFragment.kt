@@ -31,6 +31,7 @@ class TrackingProtectionBlockingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (isStrict) {
+            details_blocking_header.setText(R.string.enhanced_tracking_protection_strict_info)
             category_tracking_content.visibility = View.VISIBLE
         } else {
             category_tracking_content.visibility = View.GONE
