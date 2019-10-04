@@ -58,16 +58,16 @@ class SettingsTest {
     fun launchLinksInPrivateTab() {
         // When just created
         // Then
-        assertFalse(settings.launchLinksInPrivateTab)
+        assertFalse(settings.openLinksInAPrivateTab)
 
         // When
-        settings.launchLinksInPrivateTab = true
+        settings.openLinksInAPrivateTab = true
 
         // Then
-        assertTrue(settings.launchLinksInPrivateTab)
+        assertTrue(settings.openLinksInAPrivateTab)
 
         // When
-        settings.launchLinksInPrivateTab = false
+        settings.openLinksInAPrivateTab = false
 
         // Then
         assertFalse(settings.usePrivateMode)
@@ -244,6 +244,13 @@ class SettingsTest {
         // When just created
         // Then
         assertTrue(settings.shouldShowClipboardSuggestions)
+    }
+
+    @Test
+    fun shouldShowSearchShortcuts() {
+        // When just created
+        // Then
+        assertTrue(settings.shouldShowSearchShortcuts)
     }
 
     @Test
