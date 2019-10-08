@@ -22,6 +22,7 @@ import org.mozilla.fenix.BuildConfig
 import org.mozilla.fenix.Config
 import org.mozilla.fenix.FeatureFlags
 import org.mozilla.fenix.R
+import org.mozilla.fenix.browser.browsingmode.BrowsingModeManager
 import org.mozilla.fenix.components.metrics.MozillaProductDetector
 import org.mozilla.fenix.ext.getPreferenceKey
 import org.mozilla.fenix.settings.PhoneFeature
@@ -31,7 +32,7 @@ import java.security.InvalidParameterException
 /**
  * A simple wrapper for SharedPreferences that makes reading preference a little bit easier.
  */
-@Suppress("LargeClass")
+@Suppress("LargeClass", "TooManyFunctions")
 class Settings private constructor(
     context: Context,
     private val isCrashReportEnabledInBuild: Boolean
@@ -82,13 +83,20 @@ class Settings private constructor(
         default = ""
     )
 
+    /**
+     * Warning: when possible, prefer to set this via [BrowsingModeManager].
+     *
+     * [BrowsingModeManager] defines a callback to be hit whenever this setting changes. For
+     * example, setting this value directly at the wrong time could cause the private theme to
+     * not be applied.
+     */
     var usePrivateMode by booleanPreference(
         appContext.getPreferenceKey(R.string.pref_key_private_mode),
         default = false
     )
 
-    var alwaysOpenInPrivateMode by booleanPreference(
-        appContext.getPreferenceKey(R.string.pref_key_launch_links_in_private_mode),
+    var openLinksInAPrivateTab by booleanPreference(
+        appContext.getPreferenceKey(R.string.pref_key_open_links_in_a_private_tab),
         default = false
     )
 
@@ -99,10 +107,10 @@ class Settings private constructor(
 
     val isCrashReportingEnabled: Boolean
         get() = isCrashReportEnabledInBuild &&
-            preferences.getBoolean(
-                appContext.getPreferenceKey(R.string.pref_key_crash_reporter),
-                true
-            )
+                preferences.getBoolean(
+                    appContext.getPreferenceKey(R.string.pref_key_crash_reporter),
+                    true
+                )
 
     val isRemoteDebuggingEnabled by booleanPreference(
         appContext.getPreferenceKey(R.string.pref_key_remote_debugging),
@@ -128,7 +136,7 @@ class Settings private constructor(
 
     val shouldShowTrackingProtectionOnboarding: Boolean
         get() = trackingProtectionOnboardingCount < trackingProtectionOnboardingMaximumCount &&
-            !trackingProtectionOnboardingShownThisSession
+                !trackingProtectionOnboardingShownThisSession
 
     val shouldAutoBounceQuickActionSheet: Boolean
         get() = autoBounceQuickActionSheetCount < autoBounceMaximumCount
@@ -163,6 +171,11 @@ class Settings private constructor(
         default = true
     )
 
+    val shouldShowSearchShortcuts by booleanPreference(
+        appContext.getPreferenceKey(R.string.pref_key_show_search_shortcuts),
+        default = true
+    )
+
     val shouldUseDarkTheme by booleanPreference(
         appContext.getPreferenceKey(R.string.pref_key_dark_theme),
         default = false
@@ -187,6 +200,32 @@ class Settings private constructor(
         appContext.getPreferenceKey(R.string.pref_key_tracking_protection_strict),
         true
     )
+
+    fun setUseStrictTrackingProtection() {
+        preferences.edit()
+            .putBoolean(
+                appContext.getPreferenceKey(R.string.pref_key_tracking_protection_standard),
+                false
+            )
+            .putBoolean(
+                appContext.getPreferenceKey(R.string.pref_key_tracking_protection_strict),
+                true
+            )
+            .apply()
+    }
+
+    fun setUseStandardTrackingProtection() {
+        preferences.edit()
+            .putBoolean(
+                appContext.getPreferenceKey(R.string.pref_key_tracking_protection_standard),
+                true
+            )
+            .putBoolean(
+                appContext.getPreferenceKey(R.string.pref_key_tracking_protection_strict),
+                false
+            )
+            .apply()
+    }
 
     var shouldDeleteBrowsingDataOnQuit by booleanPreference(
         appContext.getPreferenceKey(R.string.pref_key_delete_browsing_data_on_quit),
@@ -321,7 +360,7 @@ class Settings private constructor(
 
             val showCondition =
                 (numTimesPrivateModeOpened == CFR_COUNT_CONDITION_FOCUS_INSTALLED && focusInstalled) ||
-                    (numTimesPrivateModeOpened == CFR_COUNT_CONDITION_FOCUS_NOT_INSTALLED && !focusInstalled)
+                        (numTimesPrivateModeOpened == CFR_COUNT_CONDITION_FOCUS_NOT_INSTALLED && !focusInstalled)
 
             if (showCondition && !showedPrivateModeContextualFeatureRecommender) {
                 showedPrivateModeContextualFeatureRecommender = true

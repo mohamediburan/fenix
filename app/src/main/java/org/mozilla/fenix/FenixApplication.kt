@@ -17,7 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import mozilla.appservices.Megazord
 import mozilla.components.concept.push.PushProcessor
 import mozilla.components.service.experiments.Experiments
@@ -36,6 +35,7 @@ import org.mozilla.fenix.components.Components
 import org.mozilla.fenix.ext.settings
 import org.mozilla.fenix.session.NotificationSessionObserver
 import org.mozilla.fenix.session.VisibilityLifecycleCallback
+import org.mozilla.fenix.utils.Settings
 import java.io.File
 
 @SuppressLint("Registered")
@@ -100,6 +100,8 @@ open class FenixApplication : Application() {
             ExperimentsMetrics.activeExperiment.set(branchName)
         }
 
+        ExperimentsManager.initEtpExperiment(this)
+
         setupLeakCanary()
         if (settings().isTelemetryEnabled) {
             components.analytics.metrics.start()
@@ -115,6 +117,10 @@ open class FenixApplication : Application() {
         if ((System.currentTimeMillis() - settings().lastPlacesStorageMaintenance) > ONE_DAY_MILLIS) {
             runStorageMaintenance()
         }
+
+        // This needs to be called before the theme is set. No BrowsingModeManager is available
+        // at this point, which is why this is set directly
+        maybeClearPrivateMode()
     }
 
     private fun runStorageMaintenance() {
@@ -126,40 +132,17 @@ open class FenixApplication : Application() {
         settings().lastPlacesStorageMaintenance = System.currentTimeMillis()
     }
 
+    /**
+     * Clears private mode. This is done in order to avoid leaking the fact that
+     * private mode was in use during the previous session.
+     */
+    fun maybeClearPrivateMode(settings: Settings = settings()) {
+        if (!settings.openLinksInAPrivateTab) settings.usePrivateMode = false
+    }
+
     private fun registerRxExceptionHandling() {
         RxJavaPlugins.setErrorHandler {
             throw it.cause ?: it
-        }
-    }
-
-    /**
-     * Wait until all experiments are loaded
-     *
-     * This function will cause the caller to block until the experiments are loaded.
-     * It could be used in any number of reasons, but the most likely scenario is that
-     * a calling function needs to access the loaded experiments and wants to
-     * make sure that the experiments are loaded from the server before doing so.
-     *
-     * Because this function is synchronized, it can only be accessed by one thread
-     * at a time. Anyone trying to check the loaded status will wait if someone is
-     * already waiting. This is okay because the thread waiting for access to the
-     * function will immediately see that the loader is complete upon gaining the
-     * opportunity to run the function.
-     */
-    @Synchronized
-    public fun waitForExperimentsToLoad() {
-
-        // Do we know that we are already complete?
-        if (!experimentLoaderComplete) {
-            // No? Have we completed since the last call?
-            if (!experimentLoader.isCompleted) {
-                // No? Well, let's wait.
-                runBlocking {
-                    experimentLoader.await()
-                }
-            }
-            // Set this so we don't have to wait on the next call.
-            experimentLoaderComplete = true
         }
     }
 
